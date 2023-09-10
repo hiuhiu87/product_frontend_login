@@ -1,0 +1,26 @@
+.container-login {
+  margin: 0 auto;
+  max-width: 500px;
+  box-shadow: 0 0 5px gray;
+  border-radius: 10px;
+  min-height: 280px;
+  margin-top: 20px;
+}
+
+.container-sm {
+  min-height: 260px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.error-message {
+  /* display: inline-block;
+    transform: translateX(4%); */
+  margin-top: 5px;
+}
+
+label {
+  font-size: 18px;
+}
