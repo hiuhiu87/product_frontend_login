@@ -28,7 +28,7 @@ const SearchForm = () => {
     service.getAllStatusType(access_token).then((response) => {
       setOptionStatus(response.data);
     });
-  }, []);
+  }, [access_token]);
 
   const setToDefault = (e) => {
     e.preventDefault();

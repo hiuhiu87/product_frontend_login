@@ -6,9 +6,9 @@ import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import validator from "validator";
 import LoadingSpinner from "./LoadingComponent";
-import Header from "../components/Header";
+import Header from "./Header";
 
-const AddUpdateComponent = () => {
+const FeatureComponent = () => {
   const [productName, setProductName] = useState("");
   const [color, setColor] = useState("");
   const [quantity, setQuantity] = useState();
@@ -26,6 +26,8 @@ const AddUpdateComponent = () => {
   const [validateMsg, setValidateMsg] = useState({});
   const url = window.location.href;
   const [isLoading, setIsLoading] = useState(false);
+  const dataLocalStorage = JSON.parse(localStorage.getItem('user'));
+  const accessToken = dataLocalStorage.accessToken;
 
   const validateField = () => {
     const message = {};
@@ -78,6 +80,14 @@ const AddUpdateComponent = () => {
     });
   };
 
+  const checkResponseMessage = (response) => {
+    if (response.includes('success')) {
+      showAlertSuccess("Thông Báo", "Thêm Thành Công");
+      return true;
+    }
+    return false;
+  };
+
   const saveOrUpdate = (e) => {
     const product = {
       productName,
@@ -93,7 +103,7 @@ const AddUpdateComponent = () => {
     if (id) {
       setIsLoading(true);
       service
-        .updateProduct(product, id)
+        .updateProduct(product, id, accessToken)
         .then((response) => {
           setIsLoading(false);
           showAlertSuccess("Thông báo", response.data);
@@ -104,14 +114,14 @@ const AddUpdateComponent = () => {
         });
     } else {
       service
-        .createProduct(product)
+        .createProduct(product, accessToken)
         .then((response) => {
           setIsLoading(true);
-          showAlertSuccess("Thông Báo", response.data);
           setIsLoading(false);
-          navigation("/product_frontend");
+          checkResponseMessage(response.data) ?  navigation("/product_frontend") : showAlertWarning("Thông Báo", response.data);
         })
         .catch((error) => {
+          console.log(error);
           showAlertWarning("Lỗi", "Không Thêm Được Sản Phẩm");
         });
     }
@@ -121,7 +131,7 @@ const AddUpdateComponent = () => {
     if (id || id !== undefined) {
       setIsLoading(true);
       service
-        .getProductById(id)
+        .getProductById(id, accessToken)
         .then((response) => {
           console.log(response.data);
           setProductName(response.data.productName);
@@ -139,19 +149,19 @@ const AddUpdateComponent = () => {
           console.log(error);
         });
     }
-  }, [id]);
+  }, [id, accessToken]);
 
   useEffect(() => {
-    service.getAllBrands().then((response) => {
+    service.getAllBrands(accessToken).then((response) => {
       setOptionBrands(response.data);
     });
-    service.getAllSubcategory().then((response) => {
+    service.getAllSubcategory(accessToken).then((response) => {
       setOptionSubCate(response.data);
     });
-    service.getAllStatusType().then((response) => {
+    service.getAllStatusType(accessToken).then((response) => {
       setOptionStatus(response.data);
     });
-  }, []);
+  }, [accessToken]);
 
   const title = () => {
     if (url.includes("detail-product") && id) {
@@ -228,7 +238,7 @@ const AddUpdateComponent = () => {
                     placeholder="Enter Name"
                     name="productName"
                     className="form-control"
-                    value={productName}
+                    value={productName || ''}
                     onChange={(e) => setProductName(e.target.value)}
                   ></input>
                   <span className="text-danger fs-6">
@@ -356,7 +366,7 @@ const AddUpdateComponent = () => {
 
   return (
     <>
-      <Header center={"text-center"} />
+      <Header center={"text-center"} title={"Functions"} />
       <br />
       <br />
       {isLoading ? <LoadingSpinner /> : renderForm()}
@@ -364,4 +374,4 @@ const AddUpdateComponent = () => {
   );
 };
 
-export default AddUpdateComponent;
+export default FeatureComponent;

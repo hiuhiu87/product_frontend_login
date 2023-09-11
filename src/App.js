@@ -6,10 +6,11 @@ import {
   Navigate,
 } from "react-router-dom";
 import TableProduct from "./components/TableProduct";
-import ModifyComponent from "./components/ModifyComponent";
+import ModifyComponent from "./components/FeatureComponent";
 import LoginComponent from "./components/LoginComponent";
 import ProtectedRoute from "./authentication/ProtectedRoute";
 import { AuthProvider } from "./authentication/AuthCustome";
+import RegisterComponent from "./components/RegisterComponent";
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
       <Router>
         <AuthProvider>
           <Routes>
+          <Route path="*" element={<Navigate to="/product_frontend" />} />
             <Route path="/" element={<Navigate to="/product_frontend" />} />
             <Route
               exact
@@ -61,6 +63,7 @@ const App = () => {
             />
 
             <Route path="/login" element={<LoginComponent />} />
+            <Route path="/register" element={<RegisterComponent />} />
           </Routes>
         </AuthProvider>
       </Router>

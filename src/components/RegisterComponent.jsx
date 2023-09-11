@@ -4,15 +4,14 @@ import Header from "./Header";
 import { useState } from "react";
 import validator from "validator";
 import service from "../service/ProductService";
-import { useAuth } from "../authentication/AuthCustome";
 import Swal from "sweetalert2";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
-const LoginComponent = () => {
+const RegisterComponent = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [messageValidate, setMessageValidate] = useState({});
-  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const validateField = () => {
     const message = {};
@@ -44,11 +43,11 @@ const LoginComponent = () => {
     if (!isValid) return;
     const loginInfor = { email, password };
     service
-      .loginRequest(loginInfor)
+      .registerRequest(loginInfor)
       .then((response) => {
         console.log(response.data);
-        login(response.data);
-        showAlert("Thông Báo", "Đăng Nhập Thành Công", "success");
+        showAlert("Thông Báo", response.data, "info");
+        navigate("/login");
       })
       .catch((error) => {
         console.log(error);
@@ -64,7 +63,7 @@ const LoginComponent = () => {
 
   return (
     <Fragment>
-      <Header center={"text-center"} title={"Login Page"} />
+      <Header center={"text-center"} title={"Register Page"} />
       <div
         className="container-login"
         onKeyDown={(e) => {
@@ -84,6 +83,7 @@ const LoginComponent = () => {
               placeholder="Enter email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="off"
             />
             <span className="error-message text-danger fs-6">
               {messageValidate.email}
@@ -98,6 +98,7 @@ const LoginComponent = () => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="off"
             />
             <span className="error-message text-danger fs-6">
               {messageValidate.password}
@@ -108,15 +109,13 @@ const LoginComponent = () => {
             onClick={(e) => handleSubmit(e)}
             className="btn btn-primary"
           >
-            Login
-          </button>
-          <Link to={"/register"} className="btn btn-secondary" style={{marginLeft: '5px'}}>
             Register
-          </Link>
+          </button>
+          <Link to={"/login"} className="btn btn-outline-danger" style={{marginLeft: '5px'}}>Back To Login</Link>
         </form>
       </div>
     </Fragment>
   );
 };
 
-export default LoginComponent;
+export default RegisterComponent;

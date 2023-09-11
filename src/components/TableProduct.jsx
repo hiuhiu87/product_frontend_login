@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState,  } from "react";
+import { Fragment, useEffect, useLayoutEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import service from "../service/ProductService";
 import Swal from "sweetalert2";
@@ -16,6 +16,10 @@ const TableProduct = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const { searchData } = useParams();
   const [records, setRecords] = useState([]);
+  const dataLocalStorage = JSON.parse(localStorage.getItem("user"));
+  const emailUser = dataLocalStorage.email;
+  const accessToken = dataLocalStorage.accessToken;
+  // console.log(emailUser);
 
   const showConfirmDelete = (productId) => {
     Swal.fire({
@@ -167,26 +171,27 @@ const TableProduct = () => {
     }
   }, [searchData]);
 
-  useEffect(() => {
-    getAllProducts(currentPage);
+  useLayoutEffect(() => {
+    const getTotalPages = () => {
+      service
+        .getTotalPages(accessToken)
+        .then((response) => {
+          setTotalPage(response.data);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    };
+
+    getProducts(currentPage);
     getTotalPages();
+    // eslint-disable-next-line
   }, [currentPage]);
 
-  const getTotalPages = () => {
-    service
-      .getTotalPages()
-      .then((response) => {
-        setTotalPage(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
-
-  const getAllProducts = (pageNumber) => {
+  const getProducts = (pageNumber) => {
     setIsLoading(true);
     service
-      .getAllProducts(pageNumber)
+      .getAllProducts(pageNumber, accessToken)
       .then((response) => {
         setCurrentPage(pageNumber);
         setProducts(response.data);
@@ -200,9 +205,9 @@ const TableProduct = () => {
 
   const deleteProduct = (productId) => {
     service
-      .deleteProductById(productId)
+      .deleteProductById(productId, accessToken)
       .then((response) => {
-        getAllProducts(currentPage);
+        getProducts(currentPage);
       })
       .catch((error) => {
         console.log(error);
@@ -234,7 +239,7 @@ const TableProduct = () => {
 
   return (
     <Fragment>
-      <Header />
+      <Header emailUser={emailUser} title={"Product"} />
       <div className="container-sm">
         <SearchForm />
         <div className="shadow p-3 mb-5 bg-white rounded mt-5">
@@ -249,16 +254,13 @@ const TableProduct = () => {
           )}
           <nav className="d-flex justify-content-center">
             <ul className="pagination mt-3">
-              {currentPage + 1 > totalPage ? showPrevious() : ""}
+              {currentPage === 1 ? !showPrevious() : showPrevious()}
               {renderButtonPage()}
-              {currentPage + 1 <= totalPage ? showNext() : ""}
+              {currentPage >= totalPage ? !showNext() : showNext()}
             </ul>
           </nav>
         </div>
       </div>
-      {/* <Popup modal trigger={<button>Click Me</button>}>
-        Modal Content
-      </Popup> */}
     </Fragment>
   );
 };
