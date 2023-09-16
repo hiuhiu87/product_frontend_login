@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import service from "../service/ProductService";
 import Swal from "sweetalert2";
@@ -19,7 +19,14 @@ const TableProduct = () => {
   const dataLocalStorage = JSON.parse(localStorage.getItem("user"));
   const emailUser = dataLocalStorage.email;
   const accessToken = dataLocalStorage.accessToken;
-  // console.log(emailUser);
+  const previousTotalPage = useRef(totalPage);
+  service.setAccessToken(accessToken);
+
+  const handleReset = () => {
+    setRecords(products);
+    window.location.replace("/product_frontend");
+  };
+
 
   const showConfirmDelete = (productId) => {
     Swal.fire({
@@ -164,6 +171,31 @@ const TableProduct = () => {
     );
   };
 
+  const getTotalPages = () => {
+    service
+      .getTotalPages()
+      .then((response) => {
+        setTotalPage(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  useEffect(() => {
+    previousTotalPage.current = totalPage;
+
+    if (previousTotalPage.current > totalPage) {
+      getProducts(currentPage - 1);
+    }
+
+    if (previousTotalPage.current < totalPage) {
+      getProducts(currentPage + 1);
+    }
+    // eslint-disable-next-line
+  }, [totalPage]);
+
+
   useEffect(() => {
     if (searchData !== null && searchData !== undefined) {
       const dataProduct = JSON.parse(window.decodeURIComponent(searchData));
@@ -172,17 +204,6 @@ const TableProduct = () => {
   }, [searchData]);
 
   useLayoutEffect(() => {
-    const getTotalPages = () => {
-      service
-        .getTotalPages(accessToken)
-        .then((response) => {
-          setTotalPage(response.data);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    };
-
     getProducts(currentPage);
     getTotalPages();
     // eslint-disable-next-line
@@ -191,7 +212,7 @@ const TableProduct = () => {
   const getProducts = (pageNumber) => {
     setIsLoading(true);
     service
-      .getAllProducts(pageNumber, accessToken)
+      .getAllProducts(pageNumber)
       .then((response) => {
         setCurrentPage(pageNumber);
         setProducts(response.data);
@@ -203,10 +224,20 @@ const TableProduct = () => {
       });
   };
 
+  const showDeleteSuccess = () => {
+    Swal.fire({
+      title: "Thông Báo",
+      text: "Xóa Sản Phẩm Thành Công",
+      icon: "success",
+      confirmButtonText: "OK",
+    });
+  };
+
   const deleteProduct = (productId) => {
     service
-      .deleteProductById(productId, accessToken)
+      .deleteProductById(productId)
       .then((response) => {
+        showDeleteSuccess();
         getProducts(currentPage);
       })
       .catch((error) => {
@@ -243,9 +274,18 @@ const TableProduct = () => {
       <div className="container-sm">
         <SearchForm />
         <div className="shadow p-3 mb-5 bg-white rounded mt-5">
+        <div className="d-flex justify-content-between align-items-center">
           <Link to="/add-product" className="btn btn-primary mb-2">
             Add Product
           </Link>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={handleReset}
+          >
+            <i className="fa fa-refresh"></i> Reset
+          </button>
+        </div>
           {renderSearchName()}
           {isLoading ? (
             <LoadingSpinner />

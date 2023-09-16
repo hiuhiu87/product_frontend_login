@@ -11,6 +11,7 @@ import LoginComponent from "./components/LoginComponent";
 import ProtectedRoute from "./authentication/ProtectedRoute";
 import { AuthProvider } from "./authentication/AuthCustome";
 import RegisterComponent from "./components/RegisterComponent";
+import OAuth2RedirectHandler from "./authentication/OAuth2RedirectHandler";
 
 const App = () => {
   return (
@@ -18,7 +19,7 @@ const App = () => {
       <Router>
         <AuthProvider>
           <Routes>
-          <Route path="*" element={<Navigate to="/product_frontend" />} />
+            {/* <Route path="*" element={<Navigate to="/product_frontend" />} /> */}
             <Route path="/" element={<Navigate to="/product_frontend" />} />
             <Route
               exact
@@ -64,6 +65,10 @@ const App = () => {
 
             <Route path="/login" element={<LoginComponent />} />
             <Route path="/register" element={<RegisterComponent />} />
+            <Route
+              path="/loginbyfacebook/:token"
+              element={<OAuth2RedirectHandler />}
+            />
           </Routes>
         </AuthProvider>
       </Router>

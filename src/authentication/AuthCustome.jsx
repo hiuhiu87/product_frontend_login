@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
   // call this function when you want to authenticate the user
   const login = async (data) => {
     setUser(data);
-    console.log('data respone' + data);
+    console.log("data respone" + data);
     navigate("/product_frontend");
   };
 
@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
     () => ({
       user,
       login,
-      logout
+      logout,
     }),
     // eslint-disable-next-line
     [user]

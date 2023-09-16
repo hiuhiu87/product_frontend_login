@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import service from "../service/ProductService";
@@ -28,6 +28,7 @@ const FeatureComponent = () => {
   const [isLoading, setIsLoading] = useState(false);
   const dataLocalStorage = JSON.parse(localStorage.getItem('user'));
   const accessToken = dataLocalStorage.accessToken;
+  service.setAccessToken(accessToken);
 
   const validateField = () => {
     const message = {};
@@ -81,7 +82,7 @@ const FeatureComponent = () => {
   };
 
   const checkResponseMessage = (response) => {
-    if (response.includes('success')) {
+    if (response.includes('Success')) {
       showAlertSuccess("Thông Báo", "Thêm Thành Công");
       return true;
     }
@@ -102,9 +103,11 @@ const FeatureComponent = () => {
     };
     if (id) {
       setIsLoading(true);
+      console.log(product);
       service
-        .updateProduct(product, id, accessToken)
+        .updateProduct(product, id)
         .then((response) => {
+          console.log(response.data);
           setIsLoading(false);
           showAlertSuccess("Thông báo", response.data);
           navigation("/product_frontend");
@@ -114,11 +117,13 @@ const FeatureComponent = () => {
         });
     } else {
       service
-        .createProduct(product, accessToken)
+        .createProduct(product)
         .then((response) => {
-          setIsLoading(true);
-          setIsLoading(false);
-          checkResponseMessage(response.data) ?  navigation("/product_frontend") : showAlertWarning("Thông Báo", response.data);
+          if (checkResponseMessage(response.data)) {
+            navigation("/product_frontend");
+          } else {
+            showAlertWarning("Lỗi", response.data);
+          }
         })
         .catch((error) => {
           console.log(error);
@@ -131,7 +136,7 @@ const FeatureComponent = () => {
     if (id || id !== undefined) {
       setIsLoading(true);
       service
-        .getProductById(id, accessToken)
+        .getProductById(id)
         .then((response) => {
           console.log(response.data);
           setProductName(response.data.productName);
@@ -152,13 +157,13 @@ const FeatureComponent = () => {
   }, [id, accessToken]);
 
   useEffect(() => {
-    service.getAllBrands(accessToken).then((response) => {
+    service.getAllBrands().then((response) => {
       setOptionBrands(response.data);
     });
-    service.getAllSubcategory(accessToken).then((response) => {
+    service.getAllSubcategory().then((response) => {
       setOptionSubCate(response.data);
     });
-    service.getAllStatusType(accessToken).then((response) => {
+    service.getAllStatusType().then((response) => {
       setOptionStatus(response.data);
     });
   }, [accessToken]);
@@ -279,7 +284,7 @@ const FeatureComponent = () => {
                     placeholder="Enter Sell Price"
                     name="sell-price"
                     className="form-control"
-                    value={sellPrice}
+                    value={sellPrice || ''}
                     onChange={(e) => setSellPrice(e.target.value)}
                   ></input>
                   <span className="text-danger">{validateMsg.sellPrice}</span>
@@ -292,7 +297,7 @@ const FeatureComponent = () => {
                     placeholder="Enter Sell Price"
                     name="sell-price"
                     className="form-control"
-                    value={originPrice}
+                    value={originPrice || ''}
                     onChange={(e) => setOriginPrice(e.target.value)}
                   ></input>
                   <span className="text-danger">{validateMsg.originPrice}</span>

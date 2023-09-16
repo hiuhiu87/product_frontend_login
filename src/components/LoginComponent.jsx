@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 import "../style/LoginStyle.css";
 import Header from "./Header";
 import { useState } from "react";
@@ -6,13 +6,16 @@ import validator from "validator";
 import service from "../service/ProductService";
 import { useAuth } from "../authentication/AuthCustome";
 import Swal from "sweetalert2";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+// import { useEffect } from "react";
 
 const LoginComponent = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [messageValidate, setMessageValidate] = useState({});
   const { login } = useAuth();
+  const navigate = useNavigate();
+  const dataLocalStorage = JSON.parse(localStorage.getItem("user"));
 
   const validateField = () => {
     const message = {};
@@ -62,6 +65,27 @@ const LoginComponent = () => {
       });
   };
 
+  const handSubmitFaceBook = (e) => {
+    e.preventDefault();
+    window.location.href = "http://localhost:8081/oauth2/authorization/facebook";
+  };
+
+  const checkLogin = () => {
+    if (dataLocalStorage !== null && dataLocalStorage !== undefined) {
+      const data = {
+        email: dataLocalStorage.email,
+        accessToken: dataLocalStorage.accessToken,
+      };
+      login(data);
+      navigate("/");
+    }
+  };
+
+  useEffect(() => {
+    checkLogin();
+    // eslint-disable-next-line
+  }, []);
+
   return (
     <Fragment>
       <Header center={"text-center"} title={"Login Page"} />
@@ -106,14 +130,27 @@ const LoginComponent = () => {
           <button
             type="button"
             onClick={(e) => handleSubmit(e)}
-            className="btn btn-primary"
+            className="btn btn-success"
           >
             Login
           </button>
-          <Link to={"/register"} className="btn btn-secondary" style={{marginLeft: '5px'}}>
+          <Link
+            to={"/register"}
+            className="btn btn-secondary"
+            style={{ marginLeft: "5px" }}
+          >
             Register
           </Link>
         </form>
+
+        <div className="d-flex d-flex justify-content-center mt-3 pb-3">
+          <button
+            onClick={(e) => handSubmitFaceBook(e)}
+            className="btn btn-primary"
+          >
+            Login By Facebook
+          </button>
+        </div>
       </div>
     </Fragment>
   );

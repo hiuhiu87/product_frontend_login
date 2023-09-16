@@ -4,41 +4,52 @@ import { useState } from "react";
 import service from "../service/ProductService";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
- 
+import Swal from "sweetalert2";
 
 const SearchForm = () => {
-  const [nameProduct, setNameProduct] = useState('');
-  const [price, setPrice] = useState('');
-  const [brandId, setBrandId] = useState(1);
-  const [statusId, setStatusId] = useState(1);
-  const [cateId, setCateId] = useState(1);
+  const [nameProduct, setNameProduct] = useState("");
+  const [price, setPrice] = useState("");
+  const [brandId, setBrandId] = useState();
+  const [statusId, setStatusId] = useState();
+  const [cateId, setCateId] = useState();
   const [optionBrands, setOptionBrands] = useState([]);
   const [optionCates, setOptionCates] = useState([]);
   const [optionStatus, setOptionStatus] = useState([]);
   const navigation = useNavigate();
-  const access_token = JSON.parse(localStorage.getItem('user')).accessToken;
+  const access_token = JSON.parse(localStorage.getItem("user")).accessToken;
+  service.setAccessToken(access_token);
+
+  const showAlertSearch = () => {
+    Swal.fire({
+      title: "Thông Báo",
+      text: "Bạn Cần Chọn Ít Nhất 1 Trường Để Tìm Kiếm",
+      icon: "warning",
+      confirmButtonText: "OK",
+      timer: 2000,
+    });
+  };
 
   useEffect(() => {
-    service.getAllBrands(access_token).then((response) => {
+    service.getAllBrands().then((response) => {
       setOptionBrands(response.data);
     });
-    service.getAllCategory(access_token).then((response) => {
+    service.getAllCategory().then((response) => {
       setOptionCates(response.data);
     });
-    service.getAllStatusType(access_token).then((response) => {
+    service.getAllStatusType().then((response) => {
       setOptionStatus(response.data);
     });
-  }, [access_token]);
 
-  const setToDefault = (e) => {
-    e.preventDefault();
-    navigation(`/product_frontend`);
-    window.location.reload();
-  };
+    return () => {
+      setOptionBrands([]);
+      setOptionCates([]);
+      setOptionStatus([]);
+    }
+  }, [access_token]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-
+    let countCheck = 0;
     const dataSearch = {
       nameProduct,
       price,
@@ -46,11 +57,25 @@ const SearchForm = () => {
       statusId,
       cateId,
     };
+
+    for (const data in dataSearch) {
+      if (dataSearch[data] === "" || dataSearch[data] === undefined) {
+        countCheck++;
+      }
+    }
+
+    if (countCheck === 5) {
+      showAlertSearch();
+      return;
+    }
+
     service
-      .getListProductSearch(dataSearch, access_token)
+      .getListProductSearch(dataSearch)
       .then((response) => {
         const url = `/search-product/`;
-        const dataUrl = window.encodeURIComponent(`${JSON.stringify(response.data)}`);
+        const dataUrl = window.encodeURIComponent(
+          `${JSON.stringify(response.data)}`
+        );
         const finalUrl = url + dataUrl;
         navigation(finalUrl);
       })
@@ -102,6 +127,7 @@ const SearchForm = () => {
             onChange={(e) => setBrandId(e.target.value)}
             value={brandId}
           >
+            <option value="">--Choose Opts--</option>
             {optionBrands.map((optionBrand) => (
               <option key={optionBrand.id} value={optionBrand.id}>
                 {optionBrand.brandName}
@@ -120,6 +146,7 @@ const SearchForm = () => {
             onChange={(e) => setCateId(e.target.value)}
             value={cateId}
           >
+            <option value="">--Choose Opts--</option>
             {optionCates.map((optionCate) => (
               <option key={optionCate.categoryId} value={optionCate.categoryId}>
                 {optionCate.categoryName}
@@ -138,6 +165,7 @@ const SearchForm = () => {
             onChange={(e) => setStatusId(e.target.value)}
             value={statusId}
           >
+            <option value="">--Choose Opts--</option>
             {optionStatus.map((option) => (
               <option key={option.id} value={option.id}>
                 {option.statusName}
@@ -152,13 +180,6 @@ const SearchForm = () => {
             onClick={(e) => handleSearch(e)}
           >
             <i className="fa fa-search"></i>
-          </button>
-          <button
-            className="btn btn-secondary"
-            style={{ borderRadius: "90px", height: "40px", marginLeft: "6px" }}
-            onClick={(e) => setToDefault(e)}
-          >
-            <i className="fa fa-refresh"></i>
           </button>
         </div>
       </form>
