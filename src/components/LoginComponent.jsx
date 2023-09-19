@@ -1,5 +1,4 @@
 import { Fragment, useEffect } from "react";
-import "../style/LoginStyle.css";
 import Header from "./Header";
 import { useState } from "react";
 import validator from "validator";
@@ -67,7 +66,8 @@ const LoginComponent = () => {
 
   const handSubmitFaceBook = (e) => {
     e.preventDefault();
-    window.location.href = "http://localhost:8081/oauth2/authorization/facebook";
+    window.location.href =
+      "http://localhost:8081/oauth2/authorization/facebook";
   };
 
   const checkLogin = () => {
@@ -75,6 +75,7 @@ const LoginComponent = () => {
       const data = {
         email: dataLocalStorage.email,
         accessToken: dataLocalStorage.accessToken,
+        role: dataLocalStorage.role,
       };
       login(data);
       navigate("/");

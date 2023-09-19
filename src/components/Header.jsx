@@ -1,10 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "../style/HeaderStyle.css";
 import { useAuth } from "../authentication/AuthCustome";
 import { Fragment } from "react";
 
-const Header = ({ center, emailUser, title }) => {
+const Header = ({ center, emailUser, title, role }) => {
 
   const { logout } = useAuth();
 
@@ -15,7 +14,7 @@ const Header = ({ center, emailUser, title }) => {
   const renderLogout = () => {
     return(
       <Fragment>
-        <div className="welcome-title"> Welcom user - {emailUser}</div>
+        <div className="welcome-title"> Welcom user - {emailUser} - {role}</div>
         <button className="welcome-title btn btn-danger" onClick={() => {handleLogout()}}>Logout</button>
       </Fragment>
     );

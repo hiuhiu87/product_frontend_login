@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import service from "../service/ProductService";
 import Swal from "sweetalert2";
@@ -6,7 +6,6 @@ import DataTable from "react-data-table-component";
 import SearchForm from "./SearchFormComponent";
 import { useParams } from "react-router-dom";
 import LoadingSpinner from "./LoadingComponent";
-import "../style/TableStyle.css";
 import Header from "./Header";
 
 const TableProduct = () => {
@@ -19,6 +18,7 @@ const TableProduct = () => {
   const dataLocalStorage = JSON.parse(localStorage.getItem("user"));
   const emailUser = dataLocalStorage.email;
   const accessToken = dataLocalStorage.accessToken;
+  const roles = dataLocalStorage.role;
   const previousTotalPage = useRef(totalPage);
   service.setAccessToken(accessToken);
 
@@ -27,6 +27,14 @@ const TableProduct = () => {
     window.location.replace("/product_frontend");
   };
 
+  const checkRole = () => {
+    for (const role of roles) {
+      if (role === "ROLE_ADMIN") {
+        return true;
+      }
+    }
+    return false;
+  };
 
   const showConfirmDelete = (productId) => {
     Swal.fire({
@@ -82,6 +90,30 @@ const TableProduct = () => {
     );
   };
 
+  const renderUpdateDeleteFunction = (row) => {
+    return (
+      <Fragment>
+        <Link
+          className="btn btn-info"
+          style={{ marginLeft: "10px" }}
+          to={`/edit-product/${row.productId}`}
+        >
+          <i className="fa fa-pencil-square-o"></i>
+        </Link>
+        {"     "}
+        <button
+          className="btn btn-danger"
+          onClick={() => {
+            showConfirmDelete(row.productId);
+          }}
+          style={{ marginLeft: "10px" }}
+        >
+          <i className="fa fa-trash-o"></i>
+        </button>
+      </Fragment>
+    );
+  };
+
   const columns = [
     {
       name: "ID",
@@ -123,23 +155,7 @@ const TableProduct = () => {
           >
             <i className="fa fa-eye"></i>
           </Link>
-          <Link
-            className="btn btn-info"
-            style={{ marginLeft: "10px" }}
-            to={`/edit-product/${row.productId}`}
-          >
-            <i className="fa fa-pencil-square-o"></i>
-          </Link>
-          {"     "}
-          <button
-            className="btn btn-danger"
-            onClick={() => {
-              showConfirmDelete(row.productId);
-            }}
-            style={{ marginLeft: "10px" }}
-          >
-            <i className="fa fa-trash-o"></i>
-          </button>
+          {checkRole() ? renderUpdateDeleteFunction(row) : null}
         </>
       ),
     },
@@ -186,15 +202,14 @@ const TableProduct = () => {
     previousTotalPage.current = totalPage;
 
     if (previousTotalPage.current > totalPage) {
-      getProducts(currentPage - 1);
+      setCurrentPage(currentPage - 1);
     }
 
     if (previousTotalPage.current < totalPage) {
-      getProducts(currentPage + 1);
+      setCurrentPage(currentPage + 1);
     }
     // eslint-disable-next-line
   }, [totalPage]);
-
 
   useEffect(() => {
     if (searchData !== null && searchData !== undefined) {
@@ -203,7 +218,7 @@ const TableProduct = () => {
     }
   }, [searchData]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     getProducts(currentPage);
     getTotalPages();
     // eslint-disable-next-line
@@ -214,7 +229,8 @@ const TableProduct = () => {
     service
       .getAllProducts(pageNumber)
       .then((response) => {
-        setCurrentPage(pageNumber);
+        // const totalPages = Math.ceil(response.data.length / 5); // Thay ITEMS_PER_PAGE bằng số lượng sản phẩm trên mỗi trang của bạn
+        // setCurrentPage(pageNumber > totalPages ? totalPages : pageNumber); // Kiểm tra và cập nhật currentPage
         setProducts(response.data);
         setRecords(response.data);
         setIsLoading(false);
@@ -239,6 +255,7 @@ const TableProduct = () => {
       .then((response) => {
         showDeleteSuccess();
         getProducts(currentPage);
+        getTotalPages();
       })
       .catch((error) => {
         console.log(error);
@@ -270,22 +287,22 @@ const TableProduct = () => {
 
   return (
     <Fragment>
-      <Header emailUser={emailUser} title={"Product"} />
+      <Header emailUser={emailUser} title={"Product"} role={roles} />
       <div className="container-sm">
         <SearchForm />
         <div className="shadow p-3 mb-5 bg-white rounded mt-5">
-        <div className="d-flex justify-content-between align-items-center">
-          <Link to="/add-product" className="btn btn-primary mb-2">
-            Add Product
-          </Link>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleReset}
-          >
-            <i className="fa fa-refresh"></i> Reset
-          </button>
-        </div>
+          <div className="d-flex justify-content-between align-items-center">
+            <Link to="/add-product" className="btn btn-primary mb-2">
+              Add Product
+            </Link>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleReset}
+            >
+              <i className="fa fa-refresh"></i> Reset
+            </button>
+          </div>
           {renderSearchName()}
           {isLoading ? (
             <LoadingSpinner />
