@@ -1,4 +1,3 @@
-import "./App.css";
 import {
   BrowserRouter as Router,
   Route,
@@ -19,7 +18,7 @@ const App = () => {
       <Router>
         <AuthProvider>
           <Routes>
-            {/* <Route path="*" element={<Navigate to="/product_frontend" />} /> */}
+            <Route path="*" element={<Navigate to="/product_frontend" />} />
             <Route path="/" element={<Navigate to="/product_frontend" />} />
             <Route
               exact

@@ -1,5 +1,4 @@
 import { Fragment } from "react";
-import "../style/LoginStyle.css";
 import Header from "./Header";
 import { useState } from "react";
 import validator from "validator";

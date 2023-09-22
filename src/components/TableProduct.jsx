@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import service from "../service/ProductService";
 import Swal from "sweetalert2";
@@ -6,8 +6,8 @@ import DataTable from "react-data-table-component";
 import SearchForm from "./SearchFormComponent";
 import { useParams } from "react-router-dom";
 import LoadingSpinner from "./LoadingComponent";
-import "../style/TableStyle.css";
 import Header from "./Header";
+import { Button, Container, Pagination } from "react-bootstrap";
 
 const TableProduct = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,9 +16,11 @@ const TableProduct = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const { searchData } = useParams();
   const [records, setRecords] = useState([]);
+  const [AllProducts, setAllProducts] = useState([]);
   const dataLocalStorage = JSON.parse(localStorage.getItem("user"));
   const emailUser = dataLocalStorage.email;
   const accessToken = dataLocalStorage.accessToken;
+  const roles = dataLocalStorage.role;
   const previousTotalPage = useRef(totalPage);
   service.setAccessToken(accessToken);
 
@@ -27,6 +29,14 @@ const TableProduct = () => {
     window.location.replace("/product_frontend");
   };
 
+  const checkRole = () => {
+    for (const role of roles) {
+      if (role === "ROLE_ADMIN") {
+        return true;
+      }
+    }
+    return false;
+  };
 
   const showConfirmDelete = (productId) => {
     Swal.fire({
@@ -44,41 +54,59 @@ const TableProduct = () => {
 
   const showPrevious = () => {
     return (
-      <li className="page-item">
-        <span
-          style={{ cursor: "pointer" }}
-          className="page-link"
-          onClick={(e) => {
-            if (currentPage < 1) {
-              setCurrentPage(1);
-            } else {
-              setCurrentPage(currentPage - 1);
-            }
-          }}
-        >
-          Previous
-        </span>
-      </li>
+      <Pagination.Prev
+        style={{ cursor: "pointer" }}
+        onClick={(e) => {
+          if (currentPage < 1) {
+            setCurrentPage(1);
+          } else {
+            setCurrentPage(currentPage - 1);
+          }
+        }}
+      >
+        Previous
+      </Pagination.Prev>
     );
   };
 
   const showNext = () => {
     return (
-      <li className="page-item">
-        <span
-          style={{ cursor: "pointer" }}
-          className="page-link"
-          onClick={(e) => {
-            if (currentPage === totalPage) {
-              setCurrentPage(totalPage);
-            } else {
-              setCurrentPage(currentPage + 1);
-            }
-          }}
+      <Pagination.Next
+        style={{ cursor: "pointer" }}
+        onClick={(e) => {
+          if (currentPage === totalPage) {
+            setCurrentPage(totalPage);
+          } else {
+            setCurrentPage(currentPage + 1);
+          }
+        }}
+      >
+        Next
+      </Pagination.Next>
+    );
+  };
+
+  const renderUpdateDeleteFunction = (row) => {
+    return (
+      <Fragment>
+        <Link
+          className="btn btn-info"
+          style={{ marginLeft: "10px" }}
+          to={`/edit-product/${row.productId}`}
         >
-          Next
-        </span>
-      </li>
+          <i className="fa fa-pencil-square-o"></i>
+        </Link>
+        {"     "}
+        <button
+          className="btn btn-danger"
+          onClick={() => {
+            showConfirmDelete(row.productId);
+          }}
+          style={{ marginLeft: "10px" }}
+        >
+          <i className="fa fa-trash-o"></i>
+        </button>
+      </Fragment>
     );
   };
 
@@ -123,23 +151,7 @@ const TableProduct = () => {
           >
             <i className="fa fa-eye"></i>
           </Link>
-          <Link
-            className="btn btn-info"
-            style={{ marginLeft: "10px" }}
-            to={`/edit-product/${row.productId}`}
-          >
-            <i className="fa fa-pencil-square-o"></i>
-          </Link>
-          {"     "}
-          <button
-            className="btn btn-danger"
-            onClick={() => {
-              showConfirmDelete(row.productId);
-            }}
-            style={{ marginLeft: "10px" }}
-          >
-            <i className="fa fa-trash-o"></i>
-          </button>
+          {checkRole() ? renderUpdateDeleteFunction(row) : null}
         </>
       ),
     },
@@ -147,12 +159,15 @@ const TableProduct = () => {
 
   const handleFilter = (e) => {
     e.preventDefault();
-    const newData = products.filter((row) => {
+    const newData = AllProducts.filter((row) => {
       return row.productName
         .toLowerCase()
         .includes(e.target.value.toLowerCase());
     });
     setRecords(newData);
+    if (e.target.value === "") {
+      setRecords(products);
+    }
   };
 
   const renderSearchName = () => {
@@ -184,17 +199,7 @@ const TableProduct = () => {
 
   useEffect(() => {
     previousTotalPage.current = totalPage;
-
-    if (previousTotalPage.current > totalPage) {
-      getProducts(currentPage - 1);
-    }
-
-    if (previousTotalPage.current < totalPage) {
-      getProducts(currentPage + 1);
-    }
-    // eslint-disable-next-line
   }, [totalPage]);
-
 
   useEffect(() => {
     if (searchData !== null && searchData !== undefined) {
@@ -203,18 +208,30 @@ const TableProduct = () => {
     }
   }, [searchData]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     getProducts(currentPage);
     getTotalPages();
     // eslint-disable-next-line
   }, [currentPage]);
+
+  useEffect(() => {
+    service
+      .getAllProductsSearch()
+      .then((response) => {
+        setAllProducts(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
 
   const getProducts = (pageNumber) => {
     setIsLoading(true);
     service
       .getAllProducts(pageNumber)
       .then((response) => {
-        setCurrentPage(pageNumber);
+        // const totalPages = Math.ceil(response.data.length / 5); // Thay ITEMS_PER_PAGE bằng số lượng sản phẩm trên mỗi trang của bạn
+        // setCurrentPage(pageNumber > totalPages ? totalPages : pageNumber); // Kiểm tra và cập nhật currentPage
         setProducts(response.data);
         setRecords(response.data);
         setIsLoading(false);
@@ -239,6 +256,8 @@ const TableProduct = () => {
       .then((response) => {
         showDeleteSuccess();
         getProducts(currentPage);
+        getTotalPages();
+        
       })
       .catch((error) => {
         console.log(error);
@@ -251,18 +270,16 @@ const TableProduct = () => {
         {Array(totalPage)
           .fill(null)
           .map((_, i) => (
-            <li key={i} className="page-item">
-              <span
-                className="page-link"
-                onClick={(e) => {
-                  setCurrentPage(i + 1);
-                  console.log(currentPage);
-                }}
-                style={{ cursor: "pointer" }}
-              >
-                {i + 1}
-              </span>
-            </li>
+            <Pagination.Item
+              key={i}
+              active={i + 1 === currentPage}
+              onClick={(e) => {
+                setCurrentPage(i + 1);
+              }}
+              style={{ cursor: "pointer" }}
+            >
+              {i + 1}
+            </Pagination.Item>
           ))}
       </Fragment>
     );
@@ -270,37 +287,35 @@ const TableProduct = () => {
 
   return (
     <Fragment>
-      <Header emailUser={emailUser} title={"Product"} />
-      <div className="container-sm">
+      <Header emailUser={emailUser} title={"Product"} role={roles} />
+      <Container fluid="md">
         <SearchForm />
         <div className="shadow p-3 mb-5 bg-white rounded mt-5">
-        <div className="d-flex justify-content-between align-items-center">
-          <Link to="/add-product" className="btn btn-primary mb-2">
-            Add Product
-          </Link>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleReset}
-          >
-            <i className="fa fa-refresh"></i> Reset
-          </button>
-        </div>
+          <div className="d-flex justify-content-between align-items-center">
+            <Link to="/add-product" className="btn btn-primary mb-2">
+              Add Product
+            </Link>
+            <Button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleReset}
+            >
+              <i className="fa fa-refresh"></i> Reset
+            </Button>
+          </div>
           {renderSearchName()}
           {isLoading ? (
             <LoadingSpinner />
           ) : (
             <DataTable columns={columns} data={records} />
           )}
-          <nav className="d-flex justify-content-center">
-            <ul className="pagination mt-3">
-              {currentPage === 1 ? !showPrevious() : showPrevious()}
-              {renderButtonPage()}
-              {currentPage >= totalPage ? !showNext() : showNext()}
-            </ul>
-          </nav>
+          <Pagination className="d-flex justify-content-center">
+            {currentPage === 1 ? !showPrevious() : showPrevious()}
+            {renderButtonPage()}
+            {currentPage >= totalPage ? !showNext() : showNext()}
+          </Pagination>
         </div>
-      </div>
+      </Container>
     </Fragment>
   );
 };
