@@ -1,12 +1,10 @@
-import { Fragment, useEffect } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Header from "./Header";
-import { useState } from "react";
 import validator from "validator";
 import service from "../service/ProductService";
 import { useAuth } from "../authentication/AuthCustome";
 import Swal from "sweetalert2";
 import { Link, useNavigate } from "react-router-dom";
-// import { useEffect } from "react";
 
 const LoginComponent = () => {
   const [email, setEmail] = useState("");

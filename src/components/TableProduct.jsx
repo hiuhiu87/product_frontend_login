@@ -7,6 +7,7 @@ import SearchForm from "./SearchFormComponent";
 import { useParams } from "react-router-dom";
 import LoadingSpinner from "./LoadingComponent";
 import Header from "./Header";
+import { Button, Container, Pagination } from "react-bootstrap";
 
 const TableProduct = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,6 +16,7 @@ const TableProduct = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const { searchData } = useParams();
   const [records, setRecords] = useState([]);
+  const [AllProducts, setAllProducts] = useState([]);
   const dataLocalStorage = JSON.parse(localStorage.getItem("user"));
   const emailUser = dataLocalStorage.email;
   const accessToken = dataLocalStorage.accessToken;
@@ -52,10 +54,8 @@ const TableProduct = () => {
 
   const showPrevious = () => {
     return (
-      <li className="page-item">
-        <span
+        <Pagination.Prev
           style={{ cursor: "pointer" }}
-          className="page-link"
           onClick={(e) => {
             if (currentPage < 1) {
               setCurrentPage(1);
@@ -65,17 +65,14 @@ const TableProduct = () => {
           }}
         >
           Previous
-        </span>
-      </li>
+        </Pagination.Prev>
     );
   };
 
   const showNext = () => {
     return (
-      <li className="page-item">
-        <span
+        <Pagination.Next
           style={{ cursor: "pointer" }}
-          className="page-link"
           onClick={(e) => {
             if (currentPage === totalPage) {
               setCurrentPage(totalPage);
@@ -85,8 +82,7 @@ const TableProduct = () => {
           }}
         >
           Next
-        </span>
-      </li>
+        </Pagination.Next>
     );
   };
 
@@ -163,12 +159,15 @@ const TableProduct = () => {
 
   const handleFilter = (e) => {
     e.preventDefault();
-    const newData = products.filter((row) => {
+    const newData = AllProducts.filter((row) => {
       return row.productName
         .toLowerCase()
         .includes(e.target.value.toLowerCase());
     });
     setRecords(newData);
+    if (e.target.value === "") {
+      setRecords(products);
+    }
   };
 
   const renderSearchName = () => {
@@ -224,6 +223,17 @@ const TableProduct = () => {
     // eslint-disable-next-line
   }, [currentPage]);
 
+  useEffect(() => {
+    service
+      .getAllProductsSearch()
+      .then((response) => {
+        setAllProducts(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
+
   const getProducts = (pageNumber) => {
     setIsLoading(true);
     service
@@ -268,18 +278,17 @@ const TableProduct = () => {
         {Array(totalPage)
           .fill(null)
           .map((_, i) => (
-            <li key={i} className="page-item">
-              <span
-                className="page-link"
-                onClick={(e) => {
-                  setCurrentPage(i + 1);
-                  console.log(currentPage);
-                }}
-                style={{ cursor: "pointer" }}
-              >
-                {i + 1}
-              </span>
-            </li>
+            <Pagination.Item
+              key={i}
+              active={i + 1 === currentPage}
+              onClick={(e) => {
+                setCurrentPage(i + 1);
+                console.log(currentPage);
+              }}
+              style={{ cursor: "pointer" }}
+            >
+              {i + 1}
+            </Pagination.Item>
           ))}
       </Fragment>
     );
@@ -288,20 +297,20 @@ const TableProduct = () => {
   return (
     <Fragment>
       <Header emailUser={emailUser} title={"Product"} role={roles} />
-      <div className="container-sm">
+      <Container fluid="md">
         <SearchForm />
         <div className="shadow p-3 mb-5 bg-white rounded mt-5">
           <div className="d-flex justify-content-between align-items-center">
             <Link to="/add-product" className="btn btn-primary mb-2">
               Add Product
             </Link>
-            <button
+            <Button
               type="button"
               className="btn btn-secondary"
               onClick={handleReset}
             >
               <i className="fa fa-refresh"></i> Reset
-            </button>
+            </Button>
           </div>
           {renderSearchName()}
           {isLoading ? (
@@ -309,15 +318,13 @@ const TableProduct = () => {
           ) : (
             <DataTable columns={columns} data={records} />
           )}
-          <nav className="d-flex justify-content-center">
-            <ul className="pagination mt-3">
-              {currentPage === 1 ? !showPrevious() : showPrevious()}
-              {renderButtonPage()}
-              {currentPage >= totalPage ? !showNext() : showNext()}
-            </ul>
-          </nav>
+          <Pagination className="d-flex justify-content-center">
+            {currentPage === 1 ? !showPrevious() : showPrevious()}
+            {renderButtonPage()}
+            {currentPage >= totalPage ? !showNext() : showNext()}
+          </Pagination>
         </div>
-      </div>
+      </Container>
     </Fragment>
   );
 };
