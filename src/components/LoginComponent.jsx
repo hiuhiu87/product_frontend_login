@@ -1,13 +1,10 @@
-import { Fragment, useEffect } from "react";
-import "../style/LoginStyle.css";
+import { Fragment, useEffect, useState } from "react";
 import Header from "./Header";
-import { useState } from "react";
 import validator from "validator";
 import service from "../service/ProductService";
 import { useAuth } from "../authentication/AuthCustome";
 import Swal from "sweetalert2";
 import { Link, useNavigate } from "react-router-dom";
-// import { useEffect } from "react";
 
 const LoginComponent = () => {
   const [email, setEmail] = useState("");
@@ -67,7 +64,8 @@ const LoginComponent = () => {
 
   const handSubmitFaceBook = (e) => {
     e.preventDefault();
-    window.location.href = "http://localhost:8081/oauth2/authorization/facebook";
+    window.location.href =
+      "http://localhost:8081/oauth2/authorization/facebook";
   };
 
   const checkLogin = () => {
@@ -75,6 +73,7 @@ const LoginComponent = () => {
       const data = {
         email: dataLocalStorage.email,
         accessToken: dataLocalStorage.accessToken,
+        role: dataLocalStorage.role,
       };
       login(data);
       navigate("/");

@@ -1,0 +1,84 @@
+.header {
+  margin-top: 30px;
+}
+
+.welcome-title {
+  margin-top: 5px;
+  font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+  margin-right: 3px;
+}
+
+@keyframes spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 10px solid #f3f3f3; /* Light grey */
+  border-top: 10px solid #383636; /* Blue */
+  border-radius: 50%;
+  animation: spinner 1.5s linear infinite;
+}
+
+.spinner-container {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  height: 350px;
+}
+
+.container-login {
+  margin: 0 auto;
+  max-width: 500px;
+  box-shadow: 0 0 5px gray;
+  border-radius: 10px;
+  min-height: 280px;
+  margin-top: 20px;
+}
+
+.container-sm {
+  min-height: 260px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.error-message {
+  /* display: inline-block;
+    transform: translateX(4%); */
+  margin-top: 5px;
+}
+
+label {
+  font-size: 18px;
+}
+
+.search-group {
+  min-width: 140px;
+}
+
+.search-input {
+  max-width: 170px;
+}
+
+#label-search-input {
+  margin-right: 10px;
+}
+
+#search-input {
+  max-width: 200px;
+}
+
+.form-search-name {
+  margin-bottom: 10px;
+}
+
+#root {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}/*# sourceMappingURL=GlobalStyle.css.map */

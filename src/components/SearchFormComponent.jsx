@@ -1,5 +1,4 @@
 import React from "react";
-import "../style/SeachStyle.css";
 import { useState } from "react";
 import service from "../service/ProductService";
 import { useEffect } from "react";
